@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Expense Calculator - TrueClarity Plans</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #1e3a8a;
+            padding: 25px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin: 0;
+        }
+
+        .progress-bar {
+            background: #2563eb;
+            height: 8px;
+            position: relative;
+        }
+
+        .progress-fill {
+            background: #28a745;
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .step {
+            display: none;
+            flex: 1;
+            padding: 30px 20px;
+            background: white;
+            animation: slideIn 0.3s ease;
+        }
+
+        .step.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .step-header {
+            margin-bottom: 30px;
+        }
+
+        .step-number {
+            background: #2563eb;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .step-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .step-subtitle {
+            font-size: 16px;
+            color: #6c757d;
+        }
+
+        .options-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-card {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .option-card:active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+            transform: scale(0.98);
+        }
+
+        .option-card.selected {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+        .option-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .option-price {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .option-description {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .navigation {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-button {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-button.back {
+            background: #6c757d;
+            color: white;
+        }
+
+        .nav-button.next {
+            background: #2563eb;
+            color: white;
+        }
+
+        .nav-button:active {
+            transform: scale(0.98);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Results Screen */
+        .results-screen {
+            padding: 0;
+            background: white;
+        }
+
+        .results-hero {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .results-hero::before {
+            content: '💔';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            font-size: 120px;
+            opacity: 0.1;
+        }
+
+        .shock-label {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .total-amount {
+            font-size: 56px;
+            font-weight: 800;
+            text-shadow: 0 3px 6px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+
+        .total-subtext {
+            font-size: 18px;
+            opacity: 0.95;
+            font-weight: 500;
+        }
+
+        .truth-section {
+            padding: 25px 20px;
+            background: #fff5f5;
+            border-bottom: 3px solid #dc3545;
+        }
+
+        .truth-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #721c24;
+        }
+
+        .truth-icon {
+            font-size: 24px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .solution-section {
+            padding: 30px 20px;
+            background: white;
+        }
+
+        .solution-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .solution-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #28a745;
+            margin-bottom: 8px;
+        }
+
+        .solution-subtitle {
+            font-size: 16px;
+            color: #6c757d;
+        }
+
+        .coverage-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .coverage-box {
+            background: #f8f9fa;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            padding: 15px 10px;
+            text-align: center;
+        }
+
+        .coverage-box.recommended {
+            background: #d4edda;
+            transform: scale(1.05);
+        }
+
+        .coverage-amount {
+            font-size: 20px;
+            font-weight: 700;
+            color: #28a745;
+            margin-bottom: 3px;
+        }
+
+        .coverage-price {
+            font-size: 16px;
+            color: #495057;
+            font-weight: 600;
+        }
+
+        .coverage-daily {
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        .benefits-strip {
+            background: #e3f2fd;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+        }
+
+        .benefit-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .benefit-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .benefit-icon {
+            color: #2563eb;
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .benefit-text {
+            font-size: 15px;
+            color: #1565c0;
+            font-weight: 500;
+        }
+
+        .urgency-message {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 20px;
+            margin: 0 20px 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .urgency-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #856404;
+            margin-bottom: 8px;
+        }
+
+        .urgency-text {
+            font-size: 15px;
+            color: #856404;
+        }
+
+        .cta-container {
+            padding: 0 20px 30px;
+        }
+
+        .cta-button {
+            width: 100%;
+            padding: 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(40, 167, 69, 0.3);
+        }
+
+        .cta-button:active {
+            background: #218838;
+            transform: scale(0.98);
+            box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+        }
+
+        .cta-subtext {
+            text-align: center;
+            margin-top: 12px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .guarantee {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        .guarantee-icon {
+            color: #28a745;
+            margin-right: 8px;
+            font-size: 16px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 50px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Your Final Expense Calculator</h1>
+    </div>
+    
+    <div class="progress-bar">
+        <div class="progress-fill" id="progress"></div>
+    </div>
+
+    <div class="container" id="calculator-container">
+        <!-- Step 1: Funeral Service -->
+        <div class="step active" id="step1">
+            <div class="step-header">
+                <div class="step-number">1</div>
+                <h2 class="step-title">Funeral Service Type</h2>
+                <p class="step-subtitle">Choose the type of ceremony</p>
+            </div>
+            
+            <div class="options-container">
+                <div class="option-card" onclick="selectOption('funeral', 2500, this)">
+                    <div class="option-title">Simple Service</div>
+                    <div class="option-price">$2,500</div>
+                    <div class="option-description">Basic ceremony, modest arrangements</div>
+                </div>
+                
+                <div class="option-card" onclick="selectOption('funeral', 4500, this)">
+                    <div class="option-title">Traditional Service</div>
+                    <div class="option-price">$4,500</div>
+                    <div class="option-description">Full service with viewing</div>
+                </div>
+                
+                <div class="option-card" onclick="selectOption('funeral', 7500, this)">
+                    <div class="option-title">Premium Service</div>
+                    <div class="option-price">$7,500</div>
+                    <div class="option-description">Elaborate ceremony, all amenities</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Casket -->
+        <div class="step" id="step2">
+            <div class="step-header">
+                <div class="step-number">2</div>
+                <h2 class="step-title">Casket Selection</h2>
+                <p class="step-subtitle">Required for burial, rental for cremation</p>
+            </div>
+            
+            <div class="options-container">
+                <div class="option-card" onclick="selectOption('casket', 2000, this)">
+                    <div class="option-title">Basic Metal</div>
+                    <div class="option-price">$2,000</div>
+                    <div class="option-description">Simple, dignified option</div>
+                </div>
+                
+                <div class="option-card" onclick="selectOption('casket', 4000, this)">
+                    <div class="option-title">Premium Casket</div>
+                    <div class="option-price">$4,000</div>
+                    <div class="option-description">Higher quality materials</div>
+                </div>
+                
+                <div class="option-card" onclick="selectOption('casket', 8000, this)">
+                    <div class="option-title">Luxury Casket</div>
+                    <div class="option-price">$8,000</div>
+                    <div class="option-description">Top-of-the-line option</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Burial Type -->
+        <div class="step" id="step3">
+            <div class="step-header">
+                <div class="step-number">3</div>
+                <h2 class="step-title">Final Resting Place</h2>
+                <p class="step-subtitle">Choose burial or cremation</p>
+            </div>
+            
+            <div class="options-container">
+                <div class="option-card" onclick="selectOption('burial', 1500, this)">
+                    <div class="option-title">Cremation</div>
+                    <div class="option-price">$1,500</div>
+                    <div class="option-description">More affordable option</div>
+                </div>
+                
+                <div class="option-card" onclick="selectOption('burial', 3000, this)">
+                    <div class="option-title">Basic Burial Plot</div>
+                    <div class="option-price">$3,000</div>
+                    <div class="option-description">Standard cemetery plot</div>
+                </div>
+                
+                <div class="option-card" onclick="selectOption('burial', 8000, this)">
+                    <div class="option-title">Premium Location</div>
+                    <div class="option-price">$8,000</div>
+                    <div class="option-description">Prime cemetery location</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div class="step loading" id="loading">
+            <div class="loading-spinner"></div>
+            <h2>Calculating your family's costs...</h2>
+        </div>
+
+        <!-- Results -->
+        <div class="step" id="results">
+            <div class="results-screen">
+                <div class="results-hero">
+                    <div class="shock-label">WITHOUT INSURANCE</div>
+                    <div class="total-amount">$<span id="total">0</span></div>
+                    <div class="total-subtext">Your family's immediate burden</div>
+                </div>
+
+                <div class="truth-section">
+                    <div class="truth-item">
+                        <span class="truth-icon">😢</span>
+                        <span>Social Security only pays $255 (won't cover flowers)</span>
+                    </div>
+                    <div class="truth-item">
+                        <span class="truth-icon">⏰</span>
+                        <span>Payment due within 30 days</span>
+                    </div>
+                    <div class="truth-item">
+                        <span class="truth-icon">💔</span>
+                        <span>Your family must find $<span id="gap">0</span> while grieving</span>
+                    </div>
+                </div>
+
+                <div class="solution-section">
+                    <div class="solution-header">
+                        <h2 class="solution-title">There's a Better Way</h2>
+                        <p class="solution-subtitle">Protect them for less than your daily coffee</p>
+                    </div>
+                    
+                    <div class="coverage-grid">
+                        <div class="coverage-box">
+                            <div class="coverage-amount">$10k</div>
+                            <div class="coverage-price">$45/mo</div>
+                            <div class="coverage-daily">$1.50/day</div>
+                        </div>
+                        <div class="coverage-box recommended">
+                            <div class="coverage-amount">$15k</div>
+                            <div class="coverage-price">$65/mo</div>
+                            <div class="coverage-daily">$2.17/day</div>
+                        </div>
+                        <div class="coverage-box">
+                            <div class="coverage-amount">$20k</div>
+                            <div class="coverage-price">$85/mo</div>
+                            <div class="coverage-daily">$2.83/day</div>
+                        </div>
+                    </div>
+
+                    <div class="benefits-strip">
+                        <div class="benefit-row">
+                            <span class="benefit-icon">✓</span>
+                            <span class="benefit-text">No medical exam required</span>
+                        </div>
+                        <div class="benefit-row">
+                            <span class="benefit-icon">✓</span>
+                            <span class="benefit-text">Approval in 24-48 hours</span>
+                        </div>
+                        <div class="benefit-row">
+                            <span class="benefit-icon">✓</span>
+                            <span class="benefit-text">Rate locked for life</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="urgency-message">
+                    <div class="urgency-title">⚠️ Every Day Matters</div>
+                    <div class="urgency-text">The older you get, the more it costs. Lock in your rate today.</div>
+                </div>
+
+                <div class="cta-container">
+                    <button class="cta-button" onclick="openScheduler()">
+                        GET MY FAMILY PROTECTED →
+                    </button>
+                    <div class="cta-subtext">
+                        Free 15-minute consultation
+                    </div>
+                    <div class="guarantee">
+                        <span class="guarantee-icon">🛡️</span>
+                        <span>No obligation • Honest advice</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation" id="navigation">
+        <button class="nav-button back" id="backBtn" onclick="previousStep()" disabled>Back</button>
+        <button class="nav-button next" id="nextBtn" onclick="nextStep()">Next</button>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 3;
+        const costs = {
+            funeral: 0,
+            casket: 0,
+            burial: 0,
+            additional: 3500 // Fixed additional costs
+        };
+
+        function updateProgress() {
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+        }
+
+        function selectOption(category, amount, element) {
+            // Update cost
+            costs[category] = amount;
+            
+            // Update visual selection
+            const options = element.parentElement.querySelectorAll('.option-card');
+            options.forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            
+            // Auto-advance after selection
+            setTimeout(() => {
+                if (currentStep < totalSteps) {
+                    nextStep();
+                }
+            }, 300);
+        }
+
+        function showStep(step) {
+            // Hide all steps
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            
+            // Show current step
+            document.getElementById(`step${step}`).classList.add('active');
+            
+            // Update navigation
+            document.getElementById('backBtn').disabled = step === 1;
+            document.getElementById('nextBtn').textContent = step === totalSteps ? 'See Results' : 'Next';
+            
+            // Update progress
+            updateProgress();
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                showStep(currentStep);
+            } else {
+                showResults();
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        }
+
+        function showResults() {
+            // Hide navigation
+            document.getElementById('navigation').style.display = 'none';
+            
+            // Show loading
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById('loading').classList.add('active');
+            
+            // Calculate total
+            const total = Object.values(costs).reduce((sum, cost) => sum + cost, 0);
+            const gap = total - 255;
+            
+            // Update results
+            setTimeout(() => {
+                document.getElementById('total').textContent = total.toLocaleString();
+                document.getElementById('gap').textContent = gap.toLocaleString();
+                
+                // Show results
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('results').classList.add('active');
+                
+                // Update progress to 100%
+                document.getElementById('progress').style.width = '100%';
+                
+                // Send to GHL
+                if (window.parent && window.parent.postMessage) {
+                    window.parent.postMessage({
+                        event: 'fex_calculator_complete',
+                        data: {
+                            total_cost: total,
+                            gap_amount: gap,
+                            costs_breakdown: costs
+                        }
+                    }, '*');
+                }
+            }, 1500);
+        }
+
+        function openScheduler() {
+            window.open('https://api.leadconnectorhq.com/widget/booking/ekR0RpLt0dtkyKMxuNJe', '_blank');
+        }
+
+        // Initialize
+        updateProgress();
+    </script>
+</body>
+</html>
